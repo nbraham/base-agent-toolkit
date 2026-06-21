@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "base-agent-toolkit"
+version = "0.1.0"
+description = "Python toolkit for building AI agents on Base L2"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    {name = "Base Agent Toolkit Contributors"}
+]
+keywords = ["base", "ethereum", "l2", "ai-agent", "web3", "defi", "b20"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "web3>=6.15.0",
+    "httpx>=0.27.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "python-dotenv>=1.0.0",
+    "structlog>=24.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.3.0",
+    "mypy>=1.8.0",
+    "pre-commit>=3.6.0",
+]
+cli = [
+    "typer>=0.9.0",
+    "rich>=13.7.0",
+]
+all = ["base-agent-toolkit[dev,cli]"]
+
+[project.urls]
+Homepage = "https://github.com/base-agent-toolkit/base-agent-toolkit"
+Documentation = "https://base-agent-toolkit.readthedocs.io"
+Repository = "https://github.com/base-agent-toolkit/base-agent-toolkit"
+
+[project.scripts]
+bat = "base_agent_toolkit.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/base_agent_toolkit"]
