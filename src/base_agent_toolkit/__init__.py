@@ -26,6 +26,7 @@ from .exceptions import (
     WalletError,
 )
 from .logging import get_logger, setup_logging
+from .provider import BaseProvider, ProviderManager
 from .types import (
     Address,
     GasEstimate,
@@ -37,6 +38,7 @@ from .types import (
     WalletBalance,
     Wei,
 )
+from .wallet import BaseWallet, ERC20Token, GasOracle, ContractWrapper
 
 __all__ = [
     # Version
@@ -58,6 +60,9 @@ __all__ = [
     # Logging
     "get_logger",
     "setup_logging",
+    # Provider
+    "BaseProvider",
+    "ProviderManager",
     # Types
     "Address",
     "GasEstimate",
@@ -68,4 +73,9 @@ __all__ = [
     "TxHash",
     "WalletBalance",
     "Wei",
+    # Wallet
+    "BaseWallet",
+    "ERC20Token",
+    "GasOracle",
+    "ContractWrapper",
 ]
