@@ -1,117 +1,166 @@
-"""Custom exception classes for Base Agent Toolkit."""
+"""Custom exceptions for Base Agent Toolkit."""
 
 from __future__ import annotations
+
+from typing import Any
 
 
 class BaseAgentError(Exception):
     """Base exception for all toolkit errors."""
 
-    def __init__(self, message: str, details: dict | None = None):
+    def __init__(self, message: str = "", details: dict[str, Any] | None = None):
+        self.message = message
         self.details = details or {}
         super().__init__(message)
 
 
-class ConfigError(BaseAgentError):
-    """Raised when configuration is invalid or missing."""
-
-
-class WalletError(BaseAgentError):
-    """Raised for wallet-related errors."""
-
-
-class InsufficientFundsError(WalletError):
-    """Raised when wallet has insufficient funds for a transaction."""
-
-    def __init__(self, required: int, available: int, token: str = "ETH"):
-        self.required = required
-        self.available = available
-        self.token = token
-        super().__init__(
-            f"Insufficient {token} balance: required {required}, available {available}",
-            details={"required": required, "available": available, "token": token},
-        )
-
-
-class TransactionError(BaseAgentError):
-    """Raised when a transaction fails."""
-
-    def __init__(self, message: str, tx_hash: str | None = None, **kwargs):
-        self.tx_hash = tx_hash
-        super().__init__(message, details={"tx_hash": tx_hash, **kwargs})
-
-
-class TransactionRevertedError(TransactionError):
-    """Raised when a transaction is reverted on-chain."""
-
-
-class TransactionTimeoutError(TransactionError):
-    """Raised when waiting for transaction confirmation times out."""
-
+# ============================================================
+# Provider Errors
+# ============================================================
 
 class ProviderError(BaseAgentError):
-    """Raised for RPC provider errors."""
+    """RPC provider error."""
+    pass
 
 
 class AllProvidersFailedError(ProviderError):
-    """Raised when all RPC providers have failed."""
+    """All configured providers failed."""
+    pass
 
 
 class RateLimitError(ProviderError):
-    """Raised when RPC rate limit is exceeded."""
+    """Provider rate limit exceeded."""
+    pass
 
+
+# ============================================================
+# Wallet Errors
+# ============================================================
+
+class WalletError(BaseAgentError):
+    """Wallet-related error."""
+    pass
+
+
+class InsufficientFundsError(WalletError):
+    """Insufficient funds for a transaction."""
+
+    def __init__(
+        self,
+        required: int = 0,
+        available: int = 0,
+        token: str = "ETH",
+        **kwargs: Any,
+    ):
+        self.required = required
+        self.available = available
+        self.token = token
+        message = f"Insufficient {token}: need {required}, have {available}"
+        super().__init__(message, **kwargs)
+
+
+# ============================================================
+# Transaction Errors
+# ============================================================
+
+class TransactionError(BaseAgentError):
+    """Transaction-related error."""
+    pass
+
+
+class TransactionTimeoutError(TransactionError):
+    """Transaction was not mined within timeout."""
+
+    def __init__(self, message: str = "", tx_hash: str = "", **kwargs: Any):
+        self.tx_hash = tx_hash
+        super().__init__(message, **kwargs)
+
+
+class TransactionRevertedError(TransactionError):
+    """Transaction reverted on-chain."""
+
+    def __init__(
+        self, message: str = "", tx_hash: str = "", reason: str = "", **kwargs: Any
+    ):
+        self.tx_hash = tx_hash
+        self.reason = reason
+        super().__init__(message, **kwargs)
+
+
+# ============================================================
+# Contract Errors
+# ============================================================
 
 class ContractError(BaseAgentError):
-    """Raised for smart contract interaction errors."""
+    """Smart contract interaction error."""
+    pass
 
 
 class ContractNotFoundError(ContractError):
-    """Raised when a contract is not found at the given address."""
+    """No contract found at address."""
+    pass
 
+
+# ============================================================
+# B20 Errors
+# ============================================================
 
 class B20Error(BaseAgentError):
-    """Raised for B20 token standard errors."""
+    """B20 token standard error."""
+    pass
 
 
 class B20DeploymentError(B20Error):
-    """Raised when B20 token deployment fails."""
+    """B20 token deployment error."""
+    pass
 
 
 class B20PermissionError(B20Error):
-    """Raised when caller lacks required B20 role."""
+    """B20 role/permission error."""
+    pass
 
+
+# ============================================================
+# DeFi Errors
+# ============================================================
 
 class DeFiError(BaseAgentError):
-    """Raised for DeFi protocol interaction errors."""
+    """DeFi protocol interaction error."""
+    pass
 
 
 class SlippageExceededError(DeFiError):
-    """Raised when price slippage exceeds the allowed threshold."""
+    """Swap slippage exceeded limit."""
 
-    def __init__(self, expected: float, actual: float, max_slippage: float):
+    def __init__(
+        self,
+        expected: int = 0,
+        actual: int = 0,
+        slippage_percent: float = 0,
+        **kwargs: Any,
+    ):
         self.expected = expected
         self.actual = actual
-        self.max_slippage = max_slippage
-        super().__init__(
-            f"Slippage {abs(expected - actual) / expected:.2%} exceeds max {max_slippage:.2%}",
-            details={
-                "expected": expected,
-                "actual": actual,
-                "max_slippage": max_slippage,
-            },
+        self.slippage_percent = slippage_percent
+        message = (
+            f"Slippage exceeded: expected {expected}, got {actual} "
+            f"({slippage_percent:.2f}% slippage)"
         )
+        super().__init__(message, **kwargs)
 
+
+# ============================================================
+# x402 Errors
+# ============================================================
 
 class X402Error(BaseAgentError):
-    """Raised for x402 payment protocol errors."""
+    """x402 payment protocol error."""
+    pass
 
 
-class X402PaymentRequiredError(X402Error):
-    """Raised when an x402 API requires payment."""
+class X402PaymentError(X402Error):
+    """x402 payment failed or rejected."""
 
-
-class AgentError(BaseAgentError):
-    """Raised for agent framework errors."""
-
-
-class StrategyError(AgentError):
-    """Raised when an agent strategy encounters an error."""
+    def __init__(self, message: str = "", requirements: Any = None, **kwargs: Any):
+        self.requirements = requirements
+        super().__init__(message, **kwargs)
