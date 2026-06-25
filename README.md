@@ -1,21 +1,23 @@
-# 🔵 Base Agent Toolkit
+# Base Agent Toolkit 🔵
+
+> Python SDK for building AI agents on Base L2
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Base Chain](https://img.shields.io/badge/Chain-Base-0052FF.svg)](https://base.org)
 
-**Python toolkit for building AI agents on Base L2** — the Coinbase-incubated Ethereum Layer 2.
+A comprehensive toolkit for building autonomous AI agents that interact with the [Base](https://base.org) L2 chain — Coinbase's Ethereum rollup.
 
-Build autonomous agents that can manage wallets, interact with DeFi protocols, deploy and manage B20 tokens, make x402 payments, and execute on-chain strategies.
+## ✨ Features
 
-## 🚀 Features
-
-- **Wallet Management** — Create, load, and manage Base wallets with HD derivation
-- **B20 Token Standard** — Full support for Base's native token standard (Beryl upgrade)
-- **DeFi Integrations** — Swap on Aerodrome/Uniswap, lend on Morpho/Moonwell
-- **x402 Payments** — Pay-per-request API calls using the HTTP payment protocol
-- **Agent Framework** — Build autonomous agents with strategies, memory, and notifications
-- **CLI Interface** — Command-line tools for all operations
+- **🔑 Wallet Management** — Create, import, HD derivation, key management
+- **🪙 B20 Tokens** — Deploy and manage B20 native tokens (Beryl upgrade)
+- **💱 DeFi Integrations** — Aerodrome, Uniswap V3, Morpho Blue
+- **🤖 AI Agent Framework** — Strategy engine, tools, budget management
+- **💳 x402 Payments** — HTTP payment protocol for AI agents
+- **⛽ Gas Oracle** — EIP-1559 gas estimation and optimization
+- **📊 Portfolio Tracking** — Monitor positions across protocols
+- **🖥️ CLI Interface** — Command-line tools for common operations
 
 ## 📦 Installation
 
@@ -23,77 +25,196 @@ Build autonomous agents that can manage wallets, interact with DeFi protocols, d
 pip install base-agent-toolkit
 ```
 
-For development:
+Or from source:
+
 ```bash
-pip install base-agent-toolkit[dev]
+git clone https://github.com/ifiokmase8/base-agent-toolkit.git
+cd base-agent-toolkit
+pip install -e ".[dev]"
 ```
 
-For CLI tools:
-```bash
-pip install base-agent-toolkit[cli]
-```
+## 🚀 Quick Start
 
-## ⚡ Quick Start
+### Create a Wallet
 
 ```python
-from base_agent_toolkit import BaseWallet, BaseProvider
+from base_agent_toolkit import BaseProvider, BaseWallet
 
-# Connect to Base
-provider = BaseProvider(network="mainnet")
-
-# Create or load a wallet
-wallet = BaseWallet.from_private_key("0x...", provider=provider)
-
-# Check balance
-balance = await wallet.get_balance()
-print(f"ETH Balance: {balance.ether} ETH")
-
-# Send ETH
-tx = await wallet.send_eth("0xRecipient...", amount_ether=0.01)
-print(f"TX Hash: {tx.hash}")
+provider = BaseProvider(chain_id=8453)  # Base mainnet
+wallet = BaseWallet.create(provider)
+print(f"Address: {wallet.address}")
 ```
 
-## 🏗️ Architecture
+### Check Balance
+
+```python
+balance = wallet.get_balance()
+print(f"ETH: {balance}")
+```
+
+### Deploy a B20 Token
+
+```python
+from base_agent_toolkit.b20 import B20Factory, B20TokenConfig, B20TokenType
+
+config = B20TokenConfig(
+    name="My Token",
+    symbol="MTK",
+    token_type=B20TokenType.ASSET,
+    admin=wallet.address,
+    decimals=18,
+    supply_cap=1_000_000 * 10**18,
+)
+
+factory = B20Factory(provider)
+tx = factory.build_deploy_tx(config)
+```
+
+### Swap Tokens
+
+```python
+from base_agent_toolkit.defi import AerodromeRouter
+
+router = AerodromeRouter(provider)
+quote = router.get_quote(
+    token_in="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",  # USDC
+    token_out="0x4200000000000000000000000000000000000006",  # WETH
+    amount_in=100 * 10**6,  # 100 USDC
+)
+print(f"Expected: {quote.amount_out} WETH")
+```
+
+### Build an AI Agent
+
+```python
+from base_agent_toolkit.agent import BaseAgent, AgentConfig, AgentExecutor
+from base_agent_toolkit.agent.strategies import DCAStrategy
+
+agent = BaseAgent(AgentConfig(
+    name="dca-bot",
+    dry_run=True,
+    daily_budget_wei=10**17,
+))
+
+dca = DCAStrategy(
+    token_in=USDC_ADDRESS,
+    token_out=WETH_ADDRESS,
+    amount_per_interval=50 * 10**6,
+)
+
+executor = AgentExecutor(agent, [dca])
+results = executor.run_once()
+```
+
+### x402 Payments
+
+```python
+from base_agent_toolkit.x402 import X402Client, X402Config
+
+client = X402Client(X402Config(
+    private_key="0x...",
+    auto_pay=True,
+    max_payment_wei=10**16,
+))
+
+response = client.get("https://api.example.com/paid-data")
+```
+
+## 🖥️ CLI
+
+```bash
+# Show toolkit info
+bat info
+
+# Create wallet
+bat wallet create
+
+# Generate mnemonic
+bat wallet mnemonic
+
+# Check balance
+bat wallet balance --address 0x... --network mainnet
+
+# Configure B20 token
+bat b20 configure --name "My Token" --symbol MTK
+
+# List agent tools
+bat agent tools
+```
+
+## 📁 Project Structure
 
 ```
 base-agent-toolkit/
 ├── src/base_agent_toolkit/
-│   ├── wallet/        # Wallet management & signing
-│   ├── provider/      # RPC provider with failover
-│   ├── b20/           # B20 token standard
-│   ├── defi/          # DeFi protocol integrations
-│   ├── agent/         # AI agent framework
-│   ├── x402/          # x402 payment protocol
-│   └── cli/           # Command-line interface
-├── tests/             # Test suite
-├── examples/          # Example scripts
-└── docs/              # Documentation
+│   ├── agent/          # AI agent framework
+│   │   ├── strategies/ # Pre-built strategies (DCA, rebalance)
+│   │   ├── base.py     # BaseAgent
+│   │   ├── executor.py # Strategy executor
+│   │   └── tools.py    # Agent tools
+│   ├── b20/            # B20 token standard
+│   │   ├── factory.py  # Token deployment
+│   │   ├── token.py    # Token interaction
+│   │   ├── permit.py   # ERC-2612 permit
+│   │   └── events.py   # Event listener
+│   ├── cli/            # Command-line interface
+│   ├── defi/           # DeFi integrations
+│   │   ├── aerodrome.py  # Aerodrome DEX
+│   │   ├── uniswap.py   # Uniswap V3
+│   │   ├── morpho.py    # Morpho Blue
+│   │   └── portfolio.py # Portfolio tracker
+│   ├── provider/       # RPC provider
+│   ├── wallet/         # Wallet management
+│   ├── x402/           # x402 payment protocol
+│   ├── constants.py
+│   ├── exceptions.py
+│   ├── types.py
+│   └── config.py
+├── tests/
+├── docs/guides/
+├── examples/
+└── pyproject.toml
 ```
 
 ## 🔗 Base Ecosystem
 
-Base Agent Toolkit is built for the [Base](https://base.org) ecosystem:
+| Component | Description |
+|-----------|-------------|
+| **Base** | Coinbase L2 built on OP Stack |
+| **B20** | Native token standard (Beryl upgrade, June 2026) |
+| **Aerodrome** | Primary DEX, ve(3,3) model |
+| **x402** | HTTP payment protocol for AI agents |
+| **Base MCP** | Model Context Protocol for AI integration |
+| **ERC-8004** | Agent identity standard |
 
-- **Base Chain** — Coinbase's L2 on Ethereum (OP Stack), $4.4B TVL
-- **B20 Standard** — Native token standard (Beryl upgrade, June 2026)
-- **Base MCP** — AI assistant wallet integration
-- **x402 Protocol** — HTTP-native payment protocol for agents
-- **ERC-8004** — Agent identity standard
+## 📚 Documentation
 
-## 📖 Documentation
+- [B20 Token Guide](docs/guides/b20-tokens.md)
+- [DeFi Protocol Guide](docs/guides/defi-protocols.md)
+- [AI Agent Guide](docs/guides/ai-agents.md)
+- [Base Docs](https://docs.base.org)
+- [x402 Protocol](https://www.x402.org)
 
-- [Getting Started](docs/getting-started.md)
-- [Wallet Guide](docs/guides/wallet.md)
-- [B20 Tokens Guide](docs/guides/b20-tokens.md)
-- [DeFi Integration Guide](docs/guides/defi-protocols.md)
-- [Agent Quickstart](docs/guides/agent-quickstart.md)
-- [CLI Reference](docs/cli-reference.md)
-- [API Reference](docs/api-reference.md)
+## 🧪 Development
 
-## 🤝 Contributing
+```bash
+# Install dev dependencies
+pip install -e ".[dev]"
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
+# Run tests
+pytest
+
+# Lint
+ruff check src/ tests/
+
+# Type check
+mypy src/
+```
 
 ## 📄 License
 
 MIT License — see [LICENSE](LICENSE) for details.
+
+## 🤝 Contributing
+
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
