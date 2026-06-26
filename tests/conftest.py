@@ -1,37 +1,74 @@
 """Shared test fixtures for Base Agent Toolkit."""
 
-from __future__ import annotations
+import os
 
 import pytest
 
-from base_agent_toolkit.config import Settings
-from base_agent_toolkit.types import Network
+from base_agent_toolkit.agent.base import AgentConfig, BaseAgent
+
+
+# ============================================================
+# Environment fixtures
+# ============================================================
+
+
+@pytest.fixture(autouse=True)
+def clean_env(monkeypatch):
+    """Ensure tests don't use real credentials."""
+    monkeypatch.delenv("BAT_PRIVATE_KEY", raising=False)
+    monkeypatch.delenv("BAT_RPC_URL", raising=False)
 
 
 @pytest.fixture
-def settings() -> Settings:
-    """Create test settings with Sepolia network."""
-    return Settings(
-        network=Network.SEPOLIA,
-        rpc_url="https://sepolia.base.org",
-        private_key="ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-        dry_run=True,
-        log_level="DEBUG",
-    )
+def test_private_key():
+    """Deterministic test private key (NOT for real use)."""
+    return "0x" + "a" * 64
 
 
 @pytest.fixture
-def mainnet_settings() -> Settings:
-    """Create test settings for mainnet (dry-run only)."""
-    return Settings(
-        network=Network.MAINNET,
+def test_address():
+    """Known address for testing."""
+    return "0x4200000000000000000000000000000000000006"
+
+
+# ============================================================
+# Agent fixtures
+# ============================================================
+
+
+@pytest.fixture
+def dry_run_agent():
+    """Agent in dry-run mode."""
+    config = AgentConfig(
+        name="test-agent",
         dry_run=True,
-        log_level="DEBUG",
+        daily_budget_wei=10**18,  # 1 ETH
     )
+    return BaseAgent(config)
 
 
-# Well-known test addresses
-TEST_ADDRESS_1 = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-TEST_ADDRESS_2 = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
-TEST_PRIVATE_KEY = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
+@pytest.fixture
+def live_agent():
+    """Agent in live mode (for testing, no wallet)."""
+    config = AgentConfig(
+        name="live-test-agent",
+        dry_run=False,
+    )
+    return BaseAgent(config)
+
+
+# ============================================================
+# Token fixtures
+# ============================================================
+
+
+@pytest.fixture
+def usdc_address():
+    """USDC on Base mainnet."""
+    return "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+
+
+@pytest.fixture
+def weth_address():
+    """WETH on Base mainnet."""
+    return "0x4200000000000000000000000000000000000006"
